@@ -1,0 +1,3 @@
+# synapsia/requirements.txt
+llama-index
+llama-index-embeddings-ollama
