@@ -6,20 +6,10 @@ from llama_index.core import SimpleDirectoryReader, VectorStoreIndex, Settings
 from llama_index.embeddings.ollama import OllamaEmbedding
 from llama_index.core.node_parser import SentenceSplitter
 
-def main(docs, knowledge, embed_model, ollama_url, embed_batch_size, chunk_size, chunk_overlap):
+def run_ingestion(docs, knowledge, embed_model, ollama_url, embed_batch_size, chunk_size, chunk_overlap):
     """
-    Processes documents from a specified directory and creates a persistent vector index.
-
-    Args:
-        docs (str): The path to the directory containing the documents.
-        knowledge (str): The path to the directory where the vector index will be saved.
-        embed_model (str): The name of the Ollama embedding model to use.
-        ollama_url (str): The base URL of the Ollama service.
-        embed_batch_size (int): The number of chunks to process at a time for embeddings.
-        chunk_size (int): The size of text chunks in tokens.
-        chunk_overlap (int): The number of overlapping tokens between chunks.
+    Contains the core logic for the ingestion process.
     """
-
     if not os.path.exists(docs):
         print(f"❌ Error: The document directory '{docs}' does not exist.")
         return
@@ -75,7 +65,10 @@ def main(docs, knowledge, embed_model, ollama_url, embed_batch_size, chunk_size,
         print(f"❌ An error occurred during the ingestion process: {e}")
         print(f"Please ensure the Ollama service is running and accessible at '{ollama_url}'")
 
-if __name__ == "__main__":
+def main():
+    """
+    Entry point for the CLI. Parses arguments and calls the logic.
+    """
     logging.basicConfig(
         level=logging.INFO,
         format="%(asctime)s [%(levelname)s] %(message)s",
@@ -89,58 +82,27 @@ if __name__ == "__main__":
     )
     
     # Required arguments
-    parser.add_argument(
-        "--docs",
-        required=True,
-        help="Path to the input documents directory."
-    )
-    parser.add_argument(
-        "--knowledge",
-        required=True,
-        help="Path to the output directory to save the knowledge base."
-    )
+    parser.add_argument("--docs", required=True, help="Path to the input documents directory.")
+    parser.add_argument("--knowledge", required=True, help="Path to the output directory to save the knowledge base.")
 
     # Optional arguments
-    parser.add_argument(
-        "--embed-model",
-        default="mxbai-embed-large",
-        help="The name of the embedding model to use from Ollama."
-    )
-    parser.add_argument(
-        "--ollama-url",
-        default="http://localhost:11434",
-        help="The base URL of the Ollama API service."
-    )
-
-    parser.add_argument(
-        "--embed-batch-size",
-        type=int,
-        default=5,
-        dest='embed_batch_size',
-        help="Number of chunks to process at a time when generating embeddings."
-    )
-
-    parser.add_argument(
-        "--chunk-size",
-        type=int,
-        default=1024,
-        help="The size of text chunks in tokens."
-    )
-    parser.add_argument(
-        "--chunk-overlap",
-        type=int,
-        default=20,
-        help="The number of overlapping tokens between chunks."
-    )
+    parser.add_argument("--embed-model", default="mxbai-embed-large", help="The name of the embedding model to use from Ollama.")
+    parser.add_argument("--ollama-url", default="http://localhost:11434", help="The base URL of the Ollama API service.")
+    parser.add_argument("--embed-batch-size", type=int, default=5, dest='embed_batch_size', help="Number of chunks to process at a time.")
+    parser.add_argument("--chunk-size", type=int, default=1024, help="The size of text chunks in tokens.")
+    parser.add_argument("--chunk-overlap", type=int, default=20, help="The number of overlapping tokens between chunks.")
 
     args = parser.parse_args()
     
-    main(
+    run_ingestion(
         args.docs, 
         args.knowledge, 
         args.embed_model, 
         args.ollama_url, 
-        args.embed_batch_size,
-        args.chunk_size,
+        args.embed_batch_size, 
+        args.chunk_size, 
         args.chunk_overlap
     )
+
+if __name__ == "__main__":
+    main()
